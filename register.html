@@ -138,11 +138,11 @@
 
     <div class="container">
         <div class="header">
-            <h2>ลงทะเบียนบุคลากรใหม่</h2>
+            <h2>ระบบประเมินบุคลากร</h2>
             <p>กรุณากรอกข้อมูลให้ครบถ้วนเพื่อสร้างบัญชีผู้ใช้งาน</p>
         </div>
 
-        <form action="#" method="POST" onsubmit="return handleRegister(event)">
+        <form id="registerForm" method="POST" onsubmit="return handleRegister(event)">
             
             <div class="section-title">ข้อมูลส่วนตัว</div>
             
@@ -221,20 +221,45 @@
 
     <script>
         function handleRegister(event) {
-            event.preventDefault(); // ป้องกันการรีเฟรชหน้าเว็บสำหรับการ Demo
+            event.preventDefault(); // ป้องกันหน้าเว็บรีโหลดเอง
 
-            // ดึงค่ารหัสผ่านมาตรวจสอบ
+            const form = event.target;
+            const formData = new FormData(form);
+
+            // ตรวจสอบรหัสผ่านก่อนส่ง
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
 
             if (password !== confirmPassword) {
-                alert("รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง");
-                return false;
+                alert("รหัสผ่านไม่ตรงกัน");
+                return;
             }
 
-            // ในการใช้งานจริง โค้ดส่วนนี้จะถูกส่งไปยัง Server
-            alert("บันทึกข้อมูลสำเร็จ! (Demo Mode)");
-            console.log("Form Submitted");
+            // ส่งข้อมูลไปยัง PHP ด้วย fetch
+            fetch('save_employee.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // เช็คว่า Server ตอบกลับมาเป็น JSON หรือไม่
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    form.reset(); // ล้างฟอร์มหลังสำเร็จ
+                    window.location.href = 'login.html'; // ไปหน้า login
+                } else {
+                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ หรือเกิดข้อผิดพลาดภายใน');
+            });
         }
     </script>
 </body>
