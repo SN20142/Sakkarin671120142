@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนบุคลากร - HR System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb; /* สีน้ำเงินหลัก */
+            --primary-hover: #1d4ed8;
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --border-color: #d1d5db;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h2 {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 25px 0;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #374151;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 10px;
+        }
+
+        /* Responsive: บนมือถือให้เรียง field เป็นแนวตั้ง */
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h2>ลงทะเบียนบุคลากรใหม่</h2>
+            <p>กรุณากรอกข้อมูลให้ครบถ้วนเพื่อสร้างบัญชีผู้ใช้งาน</p>
+        </div>
+
+        <form action="#" method="POST" onsubmit="return handleRegister(event)">
+            
+            <div class="section-title">ข้อมูลส่วนตัว</div>
+            
+            <div class="form-row">
+                <div class="col form-group">
+                    <label for="firstname">ชื่อจริง <span style="color:red">*</span></label>
+                    <input type="text" id="firstname" name="firstname" placeholder="เช่น สมชาย" required>
+                </div>
+                <div class="col form-group">
+                    <label for="lastname">นามสกุล <span style="color:red">*</span></label>
+                    <input type="text" id="lastname" name="lastname" placeholder="เช่น ใจดี" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col form-group">
+                    <label for="phone">เบอร์โทรศัพท์</label>
+                    <input type="tel" id="phone" name="phone" placeholder="08x-xxx-xxxx">
+                </div>
+                <div class="col form-group">
+                    <label for="birthdate">วันเกิด</label>
+                    <input type="date" id="birthdate" name="birthdate">
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-title">ข้อมูลการทำงาน</div>
+
+            <div class="form-row">
+                <div class="col form-group">
+                    <label for="department">แผนก/ฝ่าย <span style="color:red">*</span></label>
+                    <select id="department" name="department" required>
+                        <option value="" disabled selected>เลือกแผนก</option>
+                        <option value="hr">ทรัพยากรบุคคล (HR)</option>
+                        <option value="it">เทคโนโลยีสารสนเทศ (IT)</option>
+                        <option value="sales">ฝ่ายขาย (Sales)</option>
+                        <option value="account">บัญชีและการเงิน (Accounting)</option>
+                        <option value="management">ผู้บริหาร (Management)</option>
+                    </select>
+                </div>
+                <div class="col form-group">
+                    <label for="position">ตำแหน่ง</label>
+                    <input type="text" id="position" name="position" placeholder="เช่น Senior Developer">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="emp_id">รหัสพนักงาน</label>
+                <input type="text" id="emp_id" name="emp_id" placeholder="เช่น EMP-001">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-title">ข้อมูลสำหรับเข้าสู่ระบบ</div>
+
+            <div class="form-group">
+                <label for="email">อีเมล (Email) <span style="color:red">*</span></label>
+                <input type="email" id="email" name="email" placeholder="name@company.com" required>
+            </div>
+
+            <div class="form-row">
+                <div class="col form-group">
+                    <label for="password">รหัสผ่าน <span style="color:red">*</span></label>
+                    <input type="password" id="password" name="password" minlength="8" required>
+                </div>
+                <div class="col form-group">
+                    <label for="confirm_password">ยืนยันรหัสผ่าน <span style="color:red">*</span></label>
+                    <input type="password" id="confirm_password" name="confirm_password" minlength="8" required>
+                </div>
+            </div>
+
+            <button type="submit">บันทึกข้อมูล</button>
+        </form>
+    </div>
+
+    <script>
+        function handleRegister(event) {
+            event.preventDefault(); // ป้องกันการรีเฟรชหน้าเว็บสำหรับการ Demo
+
+            // ดึงค่ารหัสผ่านมาตรวจสอบ
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (password !== confirmPassword) {
+                alert("รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง");
+                return false;
+            }
+
+            // ในการใช้งานจริง โค้ดส่วนนี้จะถูกส่งไปยัง Server
+            alert("บันทึกข้อมูลสำเร็จ! (Demo Mode)");
+            console.log("Form Submitted");
+        }
+    </script>
+</body>
+</html>
