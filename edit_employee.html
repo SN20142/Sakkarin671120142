@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แก้ไขข้อมูลพนักงาน - HR System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+    <div class="particles" aria-hidden="true"></div>
+
+    <!-- Particle control UI (on/off) -->
+    <div class="particle-controls" id="particleControls" role="region" aria-label="Particle Controls">
+        <label style="display:flex;align-items:center;justify-content:space-between;gap:12px;">เอฟเฟกต์คลื่น
+            <span style="display:flex;align-items:center;gap:8px">
+                <span class="small" style="opacity:0.85;margin-right:6px">ปิด/เปิด</span>
+                <label class="switch">
+                    <input id="pc-enabled" type="checkbox" checked />
+                    <span class="slider"></span>
+                </label>
+            </span>
+        </label>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h2>แก้ไขข้อมูลพนักงาน</h2>
+            <a href="dashboard.html" class="back-link">← กลับ</a>
+        </div>
+
+        <div class="error" id="errorMessage"></div>
+        <div class="success" id="successMessage"></div>
+
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>กำลังโหลดข้อมูล...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const employeeId = urlParams.get('id');
+
+        if (!employeeId) {
+            document.getElementById('content').innerHTML = '<div class="loading"><p>ไม่พบรหัสพนักงาน</p></div>';
+            setTimeout(() => window.location.href = 'dashboard.html', 2000);
+        }
+
+        // โหลดข้อมูลพนักงาน
+        function loadEmployee() {
+            fetch(`get_employee.php?id=${employeeId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        displayForm(data.data);
+                    } else {
+                        showError(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('ไม่สามารถโหลดข้อมูลได้');
+                });
+        }
+
+        // แสดงฟอร์มแก้ไข
+        function displayForm(employee) {
+            const html = `
+                <form onsubmit="return handleUpdate(event)">
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="firstname">ชื่อจริง</label>
+                            <input type="text" id="firstname" name="firstname" value="${employee.firstname}" required>
+                        </div>
+                        <div class="col form-group">
+                            <label for="lastname">นามสกุล</label>
+                            <input type="text" id="lastname" name="lastname" value="${employee.lastname}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="email">อีเมล</label>
+                            <input type="email" id="email" name="email" value="${employee.email}" required>
+                        </div>
+                        <div class="col form-group">
+                            <label for="phone">เบอร์โทรศัพท์</label>
+                            <input type="tel" id="phone" name="phone" value="${employee.phone || ''}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="birthdate">วันเกิด</label>
+                            <input type="date" id="birthdate" name="birthdate" value="${employee.birthdate || ''}">
+                        </div>
+                        <div class="col form-group">
+                            <label for="department">แผนก/ฝ่าย</label>
+                            <select id="department" name="department" class="dept-select">
+                                <option value="">🏢 เลือกแผนก</option>
+                                <option value="hr" ${employee.department === 'hr' ? 'selected' : ''}>👥 ทรัพยากรบุคคล (HR)</option>
+                                <option value="it" ${employee.department === 'it' ? 'selected' : ''}>💻 เทคโนโลยีสารสนเทศ (IT)</option>
+                                <option value="sales" ${employee.department === 'sales' ? 'selected' : ''}>📈 ฝ่ายขาย (Sales)</option>
+                                <option value="account" ${employee.department === 'account' ? 'selected' : ''}>💰 บัญชีและการเงิน (Accounting)</option>
+                                <option value="management" ${employee.department === 'management' ? 'selected' : ''}>🎯 ผู้บริหาร (Management)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label for="position">ตำแหน่ง</label>
+                            <input type="text" id="position" name="position" value="${employee.position || ''}">
+                        </div>
+                        <div class="col form-group">
+                            <label for="emp_id">รหัสพนักงาน</label>
+                            <input type="text" id="emp_id" name="emp_id" value="${employee.emp_id || ''}">
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-save">บันทึกการเปลี่ยนแปลง</button>
+                        <a href="dashboard.html" class="btn-back">ยกเลิก</a>
+                    </div>
+                </form>
+            `;
+            document.getElementById('content').innerHTML = html;
+        }
+
+        // อัปเดตข้อมูล
+        function handleUpdate(event) {
+            event.preventDefault(); // ป้องกันหน้าเว็บรีโหลดเอง
+
+            const form = event.target;
+            const formData = new FormData(form);
+            formData.append('id', employeeId);
+
+            fetch('update_employee.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    showSuccess('บันทึกการเปลี่ยนแปลงสำเร็จ');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('ไม่สามารถบันทึกข้อมูลได้');
+            });
+
+            return false;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        // โหลดข้อมูล
+        window.addEventListener('load', loadEmployee);
+    </script>
+    <script src="assets/particles.js"></script>
+    <script>
+    // Wire particle on/off switch to runtime API (shared with other pages)
+    function initParticleControls(){
+        const ctrl = window.PARTICLE_CONTROL;
+        if(!ctrl) return;
+        const enabledEl = document.getElementById('pc-enabled');
+
+        try{
+            if(enabledEl !== null){ enabledEl.checked = true; }
+        } catch(e){}
+
+        if(enabledEl){
+            enabledEl.addEventListener('change', ()=>{
+                const on = !!enabledEl.checked;
+                if(ctrl.enable) ctrl.enable(on);
+            });
+        }
+    }
+
+    if(window.PARTICLE_CONTROL){ initParticleControls(); } else {
+        window.addEventListener('DOMContentLoaded', ()=>{ setTimeout(initParticleControls, 120); });
+        window.addEventListener('load', ()=>{ setTimeout(initParticleControls, 120); });
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - HR System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+    <div class="particles" aria-hidden="true"></div>
+
+    <!-- Particle control UI (on/off) -->
+    <div class="particle-controls" id="particleControls" role="region" aria-label="Particle Controls">
+        <label style="display:flex;align-items:center;justify-content:space-between;gap:12px;">เอฟเฟกต์คลื่น
+            <span style="display:flex;align-items:center;gap:8px">
+                <span class="small" style="opacity:0.85;margin-right:6px">ปิด/เปิด</span>
+                <label class="switch">
+                    <input id="pc-enabled" type="checkbox" checked />
+                    <span class="slider"></span>
+                </label>
+            </span>
+        </label>
+    </div>
+    <div class="navbar">
+        <h1>📊 HR System Dashboard</h1>
+        <div class="navbar-user">
+            <span id="userName">ผู้ใช้</span>
+            <a href="logout.php">ออกจากระบบ</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h2>รายชื่อพนักงาน</h2>
+            <a href="register.html" class="btn">+ เพิ่มพนักงานใหม่</a>
+        </div>
+
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>กำลังโหลดข้อมูล...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ตรวจสอบว่าผู้ใช้ login แล้วหรือยัง
+        function checkSession() {
+            fetch('check_session.php')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.logged_in) {
+                        window.location.href = 'login.html';
+                    } else {
+                        document.getElementById('userName').textContent = `${data.firstname} ${data.lastname}`;
+                        loadEmployees();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    window.location.href = 'login.html';
+                });
+        }
+
+        // โหลดรายชื่อพนักงาน
+        function loadEmployees() {
+            fetch('get_employees.php')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        displayEmployees(data.data);
+                    } else {
+                        document.getElementById('content').innerHTML = `<div class="no-data">${data.message}</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('content').innerHTML = `<div class="no-data">ไม่สามารถโหลดข้อมูลได้</div>`;
+                });
+        }
+
+        // แสดงตารางพนักงาน
+        function displayEmployees(employees) {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>รหัสพนักงาน</th>
+                            <th>ชื่อ-นามสกุล</th>
+                            <th>อีเมล</th>
+                            <th>โทรศัพท์</th>
+                            <th>แผนก</th>
+                            <th>ตำแหน่ง</th>
+                            <th>การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            employees.forEach(emp => {
+                html += `
+                    <tr>
+                        <td>${emp.emp_id || '-'}</td>
+                        <td>${emp.firstname} ${emp.lastname}</td>
+                        <td>${emp.email}</td>
+                        <td>${emp.phone || '-'}</td>
+                        <td>${emp.department || '-'}</td>
+                        <td>${emp.position || '-'}</td>
+                        <td>
+                            <div class="actions">
+                                <a href="edit_employee.html?id=${emp.id}" class="btn btn-edit">แก้ไข</a>
+                                <button class="btn btn-delete" onclick="deleteEmployee(${emp.id})">ลบ</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        // ลบพนักงาน
+        function deleteEmployee(id) {
+            if (!confirm('คุณแน่ใจหรือว่าต้องการลบข้อมูลพนักงานนี้?')) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('id', id);
+
+            fetch('delete_employee.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('ลบข้อมูลสำเร็จ');
+                    loadEmployees();
+                } else {
+                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('ไม่สามารถลบข้อมูลได้ หรือเกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+            });
+        }
+
+        // เรียกใช้เมื่อโหลดหน้า
+        window.addEventListener('load', checkSession);
+    </script>
+    <script src="assets/particles.js"></script>
+    <script>
+    // Wire particle on/off switch to runtime API (shared with other pages)
+    function initParticleControls(){
+        const ctrl = window.PARTICLE_CONTROL;
+        if(!ctrl) return;
+        const enabledEl = document.getElementById('pc-enabled');
+
+        try{
+            if(enabledEl !== null){ enabledEl.checked = true; }
+        } catch(e){}
+
+        if(enabledEl){
+            enabledEl.addEventListener('change', ()=>{
+                const on = !!enabledEl.checked;
+                if(ctrl.enable) ctrl.enable(on);
+            });
+        }
+    }
+
+    if(window.PARTICLE_CONTROL){ initParticleControls(); } else {
+        window.addEventListener('DOMContentLoaded', ()=>{ setTimeout(initParticleControls, 120); });
+        window.addEventListener('load', ()=>{ setTimeout(initParticleControls, 120); });
+    }
+    </script>
+</body>
+</html>
